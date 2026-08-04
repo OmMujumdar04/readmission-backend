@@ -3,9 +3,11 @@ uvicorn
 pandas
 numpy
 scikit-learn
-sentence-transformers
 faiss-cpu
 langchain
 langchain-community
+langchain-text-splitters
 groq
 python-dotenv
+huggingface_hub
+

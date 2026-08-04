@@ -1,42 +1,49 @@
 """
-Step 3: Retrieval function.
-Given a user question, find the most relevant chunks from the knowledge base.
+Step 3 (revised): Retrieval function.
+Uses HuggingFace's free Inference API for embeddings (no local model loaded),
+to keep memory usage low on free-tier hosting.
 """
 
-from sentence_transformers import SentenceTransformer
-import faiss
-import pickle
 import os
+import pickle
+import numpy as np
+import faiss
+from dotenv import load_dotenv
+from huggingface_hub import InferenceClient
+
+load_dotenv()
 
 INDEX_DIR = os.path.join(os.path.dirname(__file__), "index")
-EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
-# Load once at import time (not on every request — loading is slow, searching is fast)
-_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+client = InferenceClient(token=os.environ.get("HF_TOKEN"))
+
 _index = faiss.read_index(os.path.join(INDEX_DIR, "kb_index.faiss"))
 with open(os.path.join(INDEX_DIR, "kb_chunks.pkl"), "rb") as f:
     _chunks = pickle.load(f)
+
+
+def embed_text(text: str):
+    result = client.feature_extraction(text, model=EMBEDDING_MODEL_NAME)
+    return np.array(result, dtype=np.float32)
 
 
 def retrieve(query: str, top_k: int = 3):
     """
     Returns the top_k most relevant chunks of text for a given query.
     """
-    query_embedding = _model.encode([query], convert_to_numpy=True)
-
-    # FAISS search returns two arrays: distances and indices of nearest neighbors
+    query_embedding = embed_text(query).reshape(1, -1)
     distances, indices = _index.search(query_embedding, top_k)
 
     results = []
     for rank, idx in enumerate(indices[0]):
         results.append({
             "text": _chunks[idx],
-            "distance": float(distances[0][rank])  # lower = more similar
+            "distance": float(distances[0][rank])
         })
     return results
 
 
-# Quick manual test — run this file directly to sanity-check retrieval
 if __name__ == "__main__":
     test_questions = [
         "What does A1C mean clinically?",
