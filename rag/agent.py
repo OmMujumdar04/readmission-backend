@@ -13,7 +13,7 @@ from app import run_prediction  # reuse the prediction logic from app.py
 
 load_dotenv()
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "openai/gpt-oss-20b"
 
 SYSTEM_PROMPT = """You are a clinical assistant chatbot for a Hospital Readmission Risk Predictor tool.
 You help doctors understand clinical concepts, how the ML model works, and specific patient risk predictions.

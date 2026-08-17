@@ -14,7 +14,7 @@ load_dotenv()  # reads backend/.env
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # Llama 3.3 70B — free on Groq, strong quality, very fast inference
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "openai/gpt-oss-20b"
 
 SYSTEM_PROMPT = """You are a clinical assistant chatbot for a Hospital Readmission Risk Predictor tool.
 Your job is to help doctors and staff understand:
